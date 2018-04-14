@@ -32,17 +32,21 @@ public class UC01RegistraEmprestimoDeLivro {
 		usuario.setNome("Jose da Silva");
 		servico = new ServicoEmprestimo();
 	}
+	
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
+	
 	@Test
 	public void CT01UC01FB_registrar_emprestimo_com_sucesso() {
 		assertNotNull(servico.empresta(livro, usuario));
 	}
+	
 	@Test(expected=RuntimeException.class)
 	public void CT02UC01FB_registrar_emprestimo_com_dados_invalidos() {
 		assertNotNull(servico.empresta(null, usuario));
 	}
+	
 	@Test
 	public void CT03UC01FB_registrar_emprestimo_com_dados_invalidos(){
 		try{
@@ -52,6 +56,7 @@ public class UC01RegistraEmprestimoDeLivro {
 			assertEquals("Dados inválidos.", e.getMessage());
 		}
 	}
+	
 	@Test
 	public void CT04UC01FB_registrar_emprestimo_com_sucesso_validacao_da_data() {
 		//acao
@@ -62,8 +67,25 @@ public class UC01RegistraEmprestimoDeLivro {
 		//verificacao
 	    assertTrue(dataEsperada.equals(dataObtida));
 	}
+	
 	@Test
-	public void CT05UC01FB_registrar_emprestimo_com_data_invalida() {
-		assertTrue(emprestimo.validaData("29-03-2000"));
+	public void CT05UC01FB_registrar_emprestimo_com_data_valida() {
+		assertTrue(emprestimo.validaData("29/03/2000"));
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void CT06UC01FB_registrar_emprestimo_com_data_invalida() {
+		Emprestimo emp = new Emprestimo();
+		try{
+			emp.setDataEmprestimo("31-02-1111");
+			fail ("deveria lançar uma exceção");
+		} catch(Exception e){
+			assertEquals("Data invalida", e.getMessage());
+		}
+	}
+	
+	@Test (expected=RuntimeException.class)
+	public void CT07UC01FB_registrar_emprestimo_com_data_invalida() {
+		emprestimo.setDataEmprestimo("30/02/2000");
 	}
 }
