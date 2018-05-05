@@ -88,4 +88,10 @@ public class UC01RegistraEmprestimoDeLivro {
 	public void CT07UC01FB_registrar_emprestimo_com_data_invalida() {
 		emprestimo.setDataEmprestimo("30/02/2000");
 	}
+	
+	@Test (expected=RuntimeException.class)
+	public void CT08UC01FB_registrar_emprestimo_com_usuario_invalido(){
+		emprestimo.setUsuario(null);
+
+	}
 }
