@@ -4,6 +4,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 public class Emprestimo {
 	private Livro livro;
 	private Usuario usuario;
@@ -15,12 +19,7 @@ public class Emprestimo {
 	}
 
 	public void setLivro(Livro livro) {
-
-		if (livro != null) {
-			this.livro = livro;
-		} else {
-			throw new RuntimeException("Livro invalido");
-		}
+		this.livro = livro;
 	}
 
 	public Usuario getUsuario() {
@@ -28,40 +27,47 @@ public class Emprestimo {
 	}
 
 	public void setUsuario(Usuario usuario) {
-		if (usuario != null) {
-			this.usuario = usuario;
-		} else {
-			throw new RuntimeException("Usuario invalido");
-		}
+		this.usuario = usuario;
 	}
 
 	public String getDataEmprestimo() {
 		return dataEmprestimo;
 	}
 
-	public void setDataEmprestimo(String dataEmprestimo) {
-		if (validaData(dataEmprestimo)) {
-			this.dataEmprestimo = dataEmprestimo;
-		} else {
+	public void setDataEmprestimo(String dataE) {
+		if (validaData(dataE))
+			this.dataEmprestimo = dataE;
+		else
 			throw new RuntimeException("Data invalida");
-		}
 	}
 
 	public String getDataDevolucao() {
 		return dataDevolucao;
 	}
 
-	public void setDataDevolucao(String data) {
-		this.dataDevolucao = data;
+	public void setDataDevolucao(String dataD) {
+		if (validaData(dataD))
+			this.dataDevolucao = dataD;
+		else
+			throw new RuntimeException("Data invalida");
+	}
+
+	public String setDataEmprestimo() {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("dd/MM/YYYY");
+		return new DateTime().toString(fmt);
 	}
 
 	/**
-	 * * valida o formato da data * @param data no formato dd/MM/yyyy * @return
-	 * true se a data estiver no formato valido e false para formato invalido
+	 * valida o formato da data e se o dia do mes eh valido
+	 * 
+	 * @param data no formato dd/MM/yyyy
+	 * @return true se a data estiver no formato valido e false para formato
+	 *         invalido
 	 */
+
 	public boolean validaData(String data) {
 		DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-		df.setLenient(false); //
+		df.setLenient(false); // mantem rigor em relacao a precisao
 		try {
 			df.parse(data); // data válida
 			return true;
@@ -69,4 +75,42 @@ public class Emprestimo {
 			return false;
 		}
 	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Emprestimo other = (Emprestimo) obj;
+		if (dataDevolucao == null) {
+			if (other.dataDevolucao != null)
+				return false;
+		} else if (!dataDevolucao.equals(other.dataDevolucao))
+			return false;
+		if (dataEmprestimo == null) {
+			if (other.dataEmprestimo != null)
+				return false;
+		} else if (!dataEmprestimo.equals(other.dataEmprestimo))
+			return false;
+		if (livro == null) {
+			if (other.livro != null)
+				return false;
+		} else if (!livro.equals(other.livro))
+			return false;
+		if (usuario == null) {
+			if (other.usuario != null)
+				return false;
+		} else if (!usuario.equals(other.usuario))
+			return false;
+		return true;
+	}
+
+	public boolean verificaDiaDaSemana(String data) {
+		return true;
+	}
+
 }

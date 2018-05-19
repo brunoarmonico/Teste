@@ -1,4 +1,5 @@
 package br.emprestimo.testeUnitario;
+
 import static org.junit.Assert.*;
 
 import org.junit.AfterClass;
@@ -6,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import br.emprestimo.modelo.Emprestimo;
+import br.emprestimo.modelo.EmprestimoDAO;
 import br.emprestimo.modelo.Livro;
 import br.emprestimo.modelo.Usuario;
 import br.emprestimo.servico.ServicoEmprestimo;
@@ -22,76 +24,136 @@ public class UC01RegistraEmprestimoDeLivro {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		//cenario
-		livro = new Livro();
-		livro.setIsbn("121212");
-		livro.setTitulo("Engenharia de Software");
-		livro.setAutor("Pressman");
+		// cenario
+		livro = ObtemLivro.comDadosValidos();
+
 		usuario = new Usuario();
 		usuario.setRa("11111");
 		usuario.setNome("Jose da Silva");
 		servico = new ServicoEmprestimo();
+		emprestimo = new Emprestimo();
 	}
-	
+
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
-	
+
 	@Test
 	public void CT01UC01FB_registrar_emprestimo_com_sucesso() {
 		assertNotNull(servico.empresta(livro, usuario));
 	}
-	
-	@Test(expected=RuntimeException.class)
+
+	@Test(expected = RuntimeException.class)
 	public void CT02UC01FB_registrar_emprestimo_com_dados_invalidos() {
-		assertNotNull(servico.empresta(null, usuario));
+		servico.empresta(null, usuario);
 	}
-	
+
 	@Test
-	public void CT03UC01FB_registrar_emprestimo_com_dados_invalidos(){
-		try{
+	public void CT03UC01FB_registrar_emprestimo_com_dados_invalidos() {
+		try {
 			servico.empresta(null, usuario);
-			fail ("deveria lançar uma exceção");
-		}catch(RuntimeException e){
+			fail("deveria lançar uma exceção");
+		} catch (RuntimeException e) {
 			assertEquals("Dados inválidos.", e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void CT04UC01FB_registrar_emprestimo_com_sucesso_validacao_da_data() {
-		//acao
+		// cenario
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("dd/MM/YYYY");
 		String dataEsperada = new DateTime().plusDays(8).toString(fmt);
+		// acao
 		emprestimo = servico.empresta(livro, usuario);
 		String dataObtida = emprestimo.getDataDevolucao();
-		//verificacao
-	    assertTrue(dataEsperada.equals(dataObtida));
+		// verificacao
+		assertTrue(dataEsperada.equals(dataObtida));
 	}
-	
+
 	@Test
-	public void CT05UC01FB_registrar_emprestimo_com_data_valida() {
+	public void CT05UC01FB_registrar_emprestimo_com_data_invalida() {
 		assertTrue(emprestimo.validaData("29/03/2000"));
 	}
-	
-	@Test(expected=RuntimeException.class)
+
+	@Test
 	public void CT06UC01FB_registrar_emprestimo_com_data_invalida() {
-		Emprestimo emp = new Emprestimo();
-		try{
-			emp.setDataEmprestimo("31-02-1111");
-			fail ("deveria lançar uma exceção");
-		} catch(Exception e){
+		Emprestimo emprestimo2 = new Emprestimo();
+		try {
+			emprestimo2.setDataEmprestimo("30/02/2000");
+			fail("deveria lançar uma exceção");
+		} catch (Exception e) {
 			assertEquals("Data invalida", e.getMessage());
 		}
 	}
-	
-	@Test (expected=RuntimeException.class)
-	public void CT07UC01FB_registrar_emprestimo_com_data_invalida() {
+
+	@Test(expected = RuntimeException.class)
+	public void CT07UC01RegistrarEmprestimo_com_data_invalida() {
 		emprestimo.setDataEmprestimo("30/02/2000");
 	}
-	
-	@Test (expected=RuntimeException.class)
-	public void CT08UC01FB_registrar_emprestimo_com_usuario_invalido(){
-		emprestimo.setUsuario(null);
 
+	@Test
+	public void CT08UC01RegistrarEmprestimo_obtem_data_corrente() {
+		// cenario
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("dd/MM/YYYY");
+		String dataAtual = new DateTime().toString(fmt);
+		// acao
+		String dataEmprestimo = emprestimo.setDataEmprestimo();
+		assertTrue(dataAtual.equals(dataEmprestimo));
+	}
+
+	@Test
+	public void CT09QuandoADataDevolucaoForDomingo() {
+		// cenario
+		String data = "06/05/2018";
+		Emprestimo umEmprestimo = new Emprestimo();
+		// acao
+		boolean ehDomingo = umEmprestimo.verificaDiaDaSemana(data);
+		// verificacao
+		assertTrue(ehDomingo);
+	}
+
+	@Test
+	public void CT10QuandoInserirUmEmprestimoRetornaTrue() {
+		// cenario
+		Emprestimo umEmprestimo = new Emprestimo();
+		Usuario umUsuario = ObtemUsuario.comDadosValidos();
+		Livro umLivro = ObtemLivro.comDadosValidos();
+		ServicoEmprestimo servico = new ServicoEmprestimo();
+		EmprestimoDAO emprestimoDAO = new EmprestimoDAO();
+		umEmprestimo = servico.empresta(umLivro, umUsuario);
+		// acao
+		boolean resultadoEsperado = emprestimoDAO.adiciona(umEmprestimo);
+		// verificacao
+		assertTrue(resultadoEsperado);
+	}
+
+	@Test
+	public void CT07ConsultaRegistroComSucesso() {
+		// cenario
+		Emprestimo umEmprestimo = new Emprestimo();
+		Usuario umUsuario = ObtemUsuario.comDadosValidos();
+		Livro umLivro = ObtemLivro.comDadosValidos();
+		ServicoEmprestimo servico = new ServicoEmprestimo();
+		umEmprestimo = servico.empresta(umLivro, umUsuario);
+		EmprestimoDAO emprestimoDAO = new EmprestimoDAO();
+		emprestimoDAO.adiciona(umEmprestimo);
+		// insere 2 registro
+		umUsuario = ObtemUsuario.listaComDadosValidos().get(0);
+		umEmprestimo = servico.empresta(umLivro, umUsuario);
+		emprestimoDAO = new EmprestimoDAO();
+		emprestimoDAO.adiciona(umEmprestimo);
+		// insere 3 registro
+		umUsuario = ObtemUsuario.listaComDadosValidos().get(1);
+		umEmprestimo = servico.empresta(umLivro, umUsuario);
+		emprestimoDAO = new EmprestimoDAO();
+		emprestimoDAO.adiciona(umEmprestimo);
+		// insere 4 registro
+		umUsuario = ObtemUsuario.listaComDadosValidos().get(2);
+		umEmprestimo = servico.empresta(umLivro, umUsuario);
+		emprestimoDAO = new EmprestimoDAO();
+		emprestimoDAO.adiciona(umEmprestimo);
+		// acao
+		Emprestimo resultadoObtido = emprestimoDAO.consulta(umEmprestimo);
+		assertTrue(resultadoObtido.equals(umEmprestimo));
 	}
 }
